@@ -13,6 +13,7 @@ RUN addgroup nomad \
 
 # Allow to fetch artifacts from TLS endpoint during the builds and by Nomad after.
 # Install timezone data so we can run Nomad periodic jobs containing timezone information
+# Add iptables for docker driver
 RUN apk --update --no-cache add \
         ca-certificates \
         dumb-init \
@@ -20,6 +21,23 @@ RUN apk --update --no-cache add \
         tzdata \
         su-exec \
   && update-ca-certificates
+
+# iptables / bridge needed by docker driver
+ARG CNI_VERSION=1.0.1
+RUN apk --no-cache add \
+        iptables \
+        ip6tables \
+        bridge
+
+ADD https://github.com/containernetworking/plugins/releases/download/v${CNI_VERSION}/cni-plugins-linux-amd64-v${CNI_VERSION}.tgz \
+    cni-plugins-linux-amd64-v${CNI_VERSION}.tgz
+
+ADD https://github.com/containernetworking/plugins/releases/download/v${CNI_VERSION}/cni-plugins-linux-amd64-v${CNI_VERSION}.tgz.sha256 \
+    cni-plugins-linux-amd64-v${CNI_VERSION}.tgz.sha256
+
+RUN grep cni-plugins-linux-amd64-v${CNI_VERSION}.tgz cni-plugins-linux-amd64-v${CNI_VERSION}.tgz.sha256 | sha256sum -c \
+  && mkdir -p /opt/cni/bin \
+  && tar xvf cni-plugins-linux-amd64-v${CNI_VERSION}.tgz --directory /opt/cni/bin
 
 # https://github.com/sgerrand/alpine-pkg-glibc/releases
 ARG GLIBC_VERSION=2.33-r0
@@ -29,7 +47,7 @@ ADD https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSI
     glibc.apk
 RUN apk add --no-cache \
         glibc.apk \
- && rm glibc.apk
+  && rm glibc.apk
 
 # https://releases.hashicorp.com/nomad/
 ARG NOMAD_VERSION=1.2.2
