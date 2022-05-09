@@ -1,4 +1,4 @@
-FROM alpine:3.14
+FROM alpine:3.15
 
 SHELL ["/bin/ash", "-x", "-c", "-o", "pipefail"]
 
@@ -50,7 +50,7 @@ RUN apk add --no-cache \
   && rm glibc.apk
 
 # https://releases.hashicorp.com/nomad/
-ARG NOMAD_VERSION=1.2.3
+ARG NOMAD_VERSION=1.3.0-rc.1
 
 ADD https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip \
     nomad_${NOMAD_VERSION}_linux_amd64.zip
